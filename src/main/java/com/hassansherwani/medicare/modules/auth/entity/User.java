@@ -31,11 +31,11 @@ public class User extends Auditable {
 
     @Column(nullable = false)
     @Builder.Default
-    private Boolean enabled = true; // for account activation/deactivation
+    private boolean enabled = true; // for account activation/deactivation
 
     @Column(nullable = false)
     @Builder.Default
-    private Boolean accountLocked = false; // for security lockout after failed attempts
+    private boolean accountLocked = false; // for security lockout after failed attempts
 
     @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(
