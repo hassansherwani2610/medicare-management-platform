@@ -2,7 +2,6 @@ package com.hassansherwani.medicare.config;
 
 import com.hassansherwani.medicare.security.CustomUserDetailsService;
 import com.hassansherwani.medicare.security.jwt.JwtAuthFilter;
-import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
