@@ -1,4 +1,7 @@
 package com.hassansherwani.medicare.common.exception;
 
-public class BusinessRuleViolationException {
+public class BusinessRuleViolationException extends RuntimeException {
+    public BusinessRuleViolationException(String message) {
+        super(message);
+    }
 }
