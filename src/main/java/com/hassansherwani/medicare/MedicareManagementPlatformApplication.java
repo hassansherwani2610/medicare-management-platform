@@ -11,9 +11,7 @@ import org.springframework.data.redis.repository.configuration.EnableRedisReposi
 @EnableJpaRepositories(basePackages = "com.hassansherwani.medicare")
 @EnableRedisRepositories(basePackages = "com.hassansherwani.medicare.redis") // package doesn't exist yet — created when we build Redis features
 public class MedicareManagementPlatformApplication {
-
 	public static void main(String[] args) {
 		SpringApplication.run(MedicareManagementPlatformApplication.class, args);
 	}
-
 }
