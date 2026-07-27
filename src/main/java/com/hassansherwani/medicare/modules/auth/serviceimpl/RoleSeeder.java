@@ -1,0 +1,26 @@
+package com.hassansherwani.medicare.modules.auth.serviceimpl;
+
+
+import com.hassansherwani.medicare.modules.auth.entity.Role;
+import com.hassansherwani.medicare.modules.auth.enums.RoleName;
+import com.hassansherwani.medicare.modules.auth.repository.RoleRepository;
+import lombok.RequiredArgsConstructor;
+import org.springframework.boot.CommandLineRunner;
+import org.springframework.stereotype.Component;
+
+@Component
+@RequiredArgsConstructor
+public class RoleSeeder implements CommandLineRunner {
+
+    private final RoleRepository roleRepository;
+
+    @Override
+    public void run(String... args) throws Exception {
+        for (RoleName roleName : RoleName.values()) {
+            roleRepository.findByName(roleName.name())
+                    .orElseGet(() -> roleRepository.save(
+                            Role.builder().name(roleName.name()).build()
+                    ));
+        }
+    }
+}
