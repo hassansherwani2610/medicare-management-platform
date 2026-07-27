@@ -7,6 +7,7 @@ import com.hassansherwani.medicare.modules.auth.dto.request.RefreshTokenRequest;
 import com.hassansherwani.medicare.modules.auth.dto.request.RegisterRequest;
 import com.hassansherwani.medicare.modules.auth.dto.response.AuthResponse;
 import com.hassansherwani.medicare.modules.auth.dto.response.UserResponse;
+import com.hassansherwani.medicare.modules.auth.entity.RefreshToken;
 import com.hassansherwani.medicare.modules.auth.entity.Role;
 import com.hassansherwani.medicare.modules.auth.entity.User;
 import com.hassansherwani.medicare.modules.auth.repository.RefreshTokenRepository;
@@ -16,12 +17,16 @@ import com.hassansherwani.medicare.modules.auth.service.AuthService;
 import com.hassansherwani.medicare.security.jwt.JwtTokenProvider;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Instant;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
@@ -56,9 +61,33 @@ public class AuthServiceImpl implements AuthService {
 
     // To login and sending responses
     private AuthResponse authenticateAndBuildResponse(String email, String rawPassword){
+        Authentication authentication = authenticationManager.authenticate(
+                new UsernamePasswordAuthenticationToken(email, rawPassword)
+        );
 
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found of email: " + email));
 
-        return null;
+        String accessTokenValue = jwtTokenProvider.generateAccessToken(authentication);
+        String refreshTokenValue = UUID.randomUUID().toString();
+
+        RefreshToken refreshToken = refreshTokenRepository.findByUser(user)
+                .orElse(RefreshToken.builder()
+                        .user(user)
+                        .build());
+
+        refreshToken.setToken(refreshTokenValue);
+        refreshToken.setExpiryDate(Instant.now().plusMillis(604800000)); // Refresh Token valid till 7 days
+        refreshToken.setRevoked(false);
+
+        refreshTokenRepository.save(refreshToken);
+
+        return AuthResponse.builder()
+                .accessToken(accessTokenValue)
+                .refreshToken(refreshTokenValue)
+                .tokenType("Bearer")
+                .user(mapToUserResponse(user))
+                .build();
     }
 
     // 1. To register or signup new user
@@ -66,11 +95,11 @@ public class AuthServiceImpl implements AuthService {
     @Transactional
     public AuthResponse register(RegisterRequest request) {
         if (userRepository.existsByEmail(request.getEmail())){
-            throw  new DuplicateResourceException("User with this email is already registered: " + request.getEmail());
+            throw  new DuplicateResourceException("User is already registered with email: " + request.getEmail());
         }
 
         Role role = roleRepository.findByName(request.getRole().toUpperCase())
-                .orElseThrow(() -> new ResourceNotFoundException("Role not found: " + request.getRole()));
+                .orElseThrow(() -> new ResourceNotFoundException("Role not found of: " + request.getRole()));
 
         Set<Role> roles = new HashSet<>();
         roles.add(role);
