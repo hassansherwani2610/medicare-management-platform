@@ -145,7 +145,7 @@ public class AuthServiceImpl implements AuthService {
         );
 
         String newAccessTokenValue = jwtTokenProvider.generateAccessToken(authentication);
-x
+
         return AuthResponse.builder()
                 .accessToken(newAccessTokenValue)
                 .refreshToken(request.getRefreshToken()) // Same value which comes in "request"
