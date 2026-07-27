@@ -49,7 +49,7 @@ public class AuthServiceImpl implements AuthService {
         this.jwtTokenProvider = jwtTokenProvider;
     }
 
-    // To send response in DTO not an ENTITY
+    // To send response in DTO form not in ENTITY form
     private UserResponse mapToUserResponse(User user){
         return UserResponse.builder()
                 .id(user.getId())
@@ -127,7 +127,31 @@ public class AuthServiceImpl implements AuthService {
     @Override
     @Transactional
     public AuthResponse refreshAccessToken(RefreshTokenRequest request) {
-        return null;
+        RefreshToken storedRefreshToken = refreshTokenRepository.findByToken(request.getRefreshToken())
+                .orElseThrow(() -> new ResourceNotFoundException("Invalid refresh token"));
+
+        if (storedRefreshToken.getRevoked() || storedRefreshToken.getExpiryDate().isBefore(Instant.now())){
+            throw new ResourceNotFoundException("Refresh token expired or revoked. Please log in again.");
+        }
+
+        User user = storedRefreshToken.getUser();
+
+        Authentication authentication = new UsernamePasswordAuthenticationToken(
+                user.getEmail(), null,
+                user.getRoles()
+                        .stream()
+                        .map(role -> new org.springframework.security.core.authority.SimpleGrantedAuthority("ROLE_" + role.getName()))
+                        .collect(Collectors.toList())
+        );
+
+        String newAccessTokenValue = jwtTokenProvider.generateAccessToken(authentication);
+
+        return AuthResponse.builder()
+                .accessToken(newAccessTokenValue)
+                .refreshToken(request.getRefreshToken()) // Same value which comes in "request"
+                .tokenType("Bearer")
+                .user(mapToUserResponse(user))
+                .build();
     }
 
     // 4. To logout and delete refresh token
