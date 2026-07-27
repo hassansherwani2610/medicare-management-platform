@@ -14,11 +14,13 @@ import com.hassansherwani.medicare.modules.auth.repository.RefreshTokenRepositor
 import com.hassansherwani.medicare.modules.auth.repository.RoleRepository;
 import com.hassansherwani.medicare.modules.auth.repository.UserRepository;
 import com.hassansherwani.medicare.modules.auth.service.AuthService;
+import com.hassansherwani.medicare.security.CustomUserDetailsService;
 import com.hassansherwani.medicare.security.jwt.JwtTokenProvider;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -38,15 +40,17 @@ public class AuthServiceImpl implements AuthService {
     private final PasswordEncoder passwordEncoder;
     private final AuthenticationManager authenticationManager;
     private final JwtTokenProvider jwtTokenProvider;
+    private final CustomUserDetailsService customUserDetailsService;
 
     @Autowired
-    public AuthServiceImpl(UserRepository userRepository, RoleRepository roleRepository, RefreshTokenRepository refreshTokenRepository, PasswordEncoder passwordEncoder, AuthenticationManager authenticationManager, JwtTokenProvider jwtTokenProvider) {
+    public AuthServiceImpl(UserRepository userRepository, RoleRepository roleRepository, RefreshTokenRepository refreshTokenRepository, PasswordEncoder passwordEncoder, AuthenticationManager authenticationManager, JwtTokenProvider jwtTokenProvider, CustomUserDetailsService customUserDetailsService) {
         this.userRepository = userRepository;
         this.roleRepository = roleRepository;
         this.refreshTokenRepository = refreshTokenRepository;
         this.passwordEncoder = passwordEncoder;
         this.authenticationManager = authenticationManager;
         this.jwtTokenProvider = jwtTokenProvider;
+        this.customUserDetailsService = customUserDetailsService;
     }
 
     // To send response in DTO form not in ENTITY form
@@ -136,13 +140,13 @@ public class AuthServiceImpl implements AuthService {
 
         User user = storedRefreshToken.getUser();
 
+        UserDetails userDetails = customUserDetailsService.loadUserByUsername(user.getEmail());
+
         Authentication authentication = new UsernamePasswordAuthenticationToken(
-                user.getEmail(), null,
-                user.getRoles()
-                        .stream()
-                        .map(role -> new org.springframework.security.core.authority.SimpleGrantedAuthority("ROLE_" + role.getName()))
-                        .collect(Collectors.toList())
-        );
+                        userDetails,
+                        null,
+                        userDetails.getAuthorities()
+                );
 
         String newAccessTokenValue = jwtTokenProvider.generateAccessToken(authentication);
 
