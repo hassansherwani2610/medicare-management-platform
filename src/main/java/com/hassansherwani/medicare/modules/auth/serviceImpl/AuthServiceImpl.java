@@ -1,4 +1,4 @@
-package com.hassansherwani.medicare.modules.auth.serviceimpl;
+package com.hassansherwani.medicare.modules.auth.serviceImpl;
 
 import com.hassansherwani.medicare.common.exception.DuplicateResourceException;
 import com.hassansherwani.medicare.common.exception.ResourceNotFoundException;

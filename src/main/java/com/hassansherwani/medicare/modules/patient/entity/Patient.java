@@ -46,7 +46,7 @@ public class Patient extends Auditable {
     private String emergencyContactName;
 
     @Column(nullable = false, length = 20)
-    private String emergencyContactPhone;
+    private String emergencyContactPhoneNumber;
 
     @Column(nullable = false)
     private String profilePictureUrl; // Cloudinary-hosted URL
