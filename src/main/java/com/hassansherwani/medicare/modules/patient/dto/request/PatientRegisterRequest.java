@@ -12,7 +12,7 @@ import java.time.LocalDate;
 @Setter
 public class PatientRegisterRequest {
 
-    // ---- Account fields (feeds into User) ----
+    // Account fields (feeds into User)
     @NotBlank(message = "Full name is required")
     @Size(min = 2, max = 100, message = "Full name must be between 2 and 100 characters")
     private String fullName;
@@ -25,7 +25,7 @@ public class PatientRegisterRequest {
     @Size(min = 8, message = "Password must be at least 8 characters")
     private String password;
 
-    // ---- Patient profile fields ----
+    // Patient profile fields
     @NotNull(message = "Date of birth is required")
     @Past(message = "Date of birth must be in the past")
     private LocalDate dateOfBirth;
