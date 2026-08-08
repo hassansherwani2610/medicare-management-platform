@@ -3,8 +3,8 @@ package com.hassansherwani.medicare.common.exception;
 import com.hassansherwani.medicare.common.response.ApiResponse;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -32,10 +32,13 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(BusinessRuleViolationException.class)
-    public ResponseEntity<ApiResponse<Void>> handleBusinessRuleViolation(BusinessRuleViolationException ex) {
+    public ResponseEntity<ApiResponse<Void>> handleBusinessRuleViolation(
+            BusinessRuleViolationException ex) {
+
         return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY)
                 .body(ApiResponse.error(ex.getMessage()));
     }
+
 
     // ==================== SECURITY EXCEPTIONS ====================
 
@@ -51,14 +54,19 @@ public class GlobalExceptionHandler {
                 .body(ApiResponse.error("You do not have permission to access this resource"));
     }
 
+
     // ==================== VALIDATION EXCEPTIONS ====================
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<ApiResponse<Map<String, String>>> handleValidationErrors(MethodArgumentNotValidException ex) {
+    public ResponseEntity<ApiResponse<Map<String, String>>> handleValidationErrors(
+            MethodArgumentNotValidException ex) {
+
         Map<String, String> fieldErrors = new HashMap<>();
+
         for (FieldError error : ex.getBindingResult().getFieldErrors()) {
             fieldErrors.put(error.getField(), error.getDefaultMessage());
         }
+
         return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                 .body(ApiResponse.<Map<String, String>>builder()
                         .success(false)
@@ -67,17 +75,38 @@ public class GlobalExceptionHandler {
                         .build());
     }
 
-    @ExceptionHandler(org.springframework.web.servlet.resource.NoResourceFoundException.class)
-    public ResponseEntity<ApiResponse<Void>> handleNoResourceFound(NoResourceFoundException ex) {
+    @ExceptionHandler(ValidationException.class)
+    public ResponseEntity<ApiResponse<Map<String, String>>> handleManualValidation(
+            ValidationException ex) {
+
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(ApiResponse.<Map<String, String>>builder()
+                        .success(false)
+                        .message("Validation failed")
+                        .data(ex.getErrors())
+                        .build());
+    }
+
+
+    // ==================== SPRING WEB EXCEPTIONS ====================
+
+    @ExceptionHandler(NoResourceFoundException.class)
+    public ResponseEntity<ApiResponse<Void>> handleNoResourceFound(
+            NoResourceFoundException ex) {
+
         return ResponseEntity.status(HttpStatus.NOT_FOUND)
                 .body(ApiResponse.error("Endpoint not found"));
     }
+
 
     // ==================== CATCH-ALL FALLBACK ====================
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ApiResponse<Void>> handleGenericException(Exception ex) {
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(ApiResponse.error("An unexpected error occurred. Please try again later."));
+                .body(ApiResponse.error(
+                        "An unexpected error occurred. Please try again later."
+                ));
     }
 }
+
