@@ -6,5 +6,5 @@ import org.springframework.web.multipart.MultipartFile;
 
 public interface PatientService {
     PatientResponse registerPatient(PatientRegisterRequest request, MultipartFile profilePicture);
-    PatientResponse getPatientByUserId(Long userId);
+    PatientResponse getMyProfile(String email);
 }
