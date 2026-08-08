@@ -57,11 +57,14 @@ public class PatientServiceImpl implements PatientService {
     }
 
     @Override
-    public PatientResponse getPatientByUserId(Long userId) {
-        Patient patient = patientRepository.findByUserId(userId)
-                .orElseThrow(() -> new ResourceNotFoundException("Patient not found for user id: " + userId));
+    public PatientResponse getMyProfile(String email) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found: " + email));
 
-        return mapToPatientResponse(patient.getUser(), patient);
+        Patient patient = patientRepository.findByUserId(user.getId())
+                .orElseThrow(() -> new ResourceNotFoundException("Patient profile not found for this account"));
+
+        return mapToPatientResponse(user, patient);
     }
 
     @Override
