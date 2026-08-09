@@ -5,10 +5,10 @@ import com.hassansherwani.medicare.common.response.ApiResponse;
 import com.hassansherwani.medicare.modules.doctor.dto.request.DoctorRegisterRequest;
 import com.hassansherwani.medicare.modules.doctor.dto.response.DoctorResponse;
 import com.hassansherwani.medicare.modules.doctor.service.DoctorService;
-import com.hassansherwani.medicare.modules.patient.service.PatientService;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.Validator;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
@@ -38,6 +38,7 @@ public class DoctorController {
 
     private void validateRequest(DoctorRegisterRequest request) {
         Set<ConstraintViolation<DoctorRegisterRequest>> violations = validator.validate(request);
+
         if (!violations.isEmpty()) {
             Map<String, String> errors = new HashMap<>();
             for (ConstraintViolation<DoctorRegisterRequest> violation : violations) {
@@ -50,12 +51,23 @@ public class DoctorController {
     @PostMapping(value = "/register", consumes = "multipart/form-data")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ApiResponse<DoctorResponse>> registerDoctor(@RequestPart("data") String requestJson, @RequestPart("profilePicture") MultipartFile profilePicture) throws IOException {
-        return null;
+        DoctorRegisterRequest request = objectMapper.readValue(requestJson, DoctorRegisterRequest.class);
+
+        validateRequest(request);
+
+        DoctorResponse response = doctorService.registerDoctor(request, profilePicture);
+
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(ApiResponse.success("Doctor registered successfully", response));
     }
 
     @GetMapping("/me")
     @PreAuthorize("hasRole('DOCTOR')")
     public ResponseEntity<ApiResponse<DoctorResponse>> getMyProfile(Authentication authentication) {
-        return null;
+        String email = authentication.getName();
+
+        DoctorResponse response = doctorService.getMyProfile(email);
+
+        return ResponseEntity.ok(ApiResponse.success("Profile fetched successfully", response));
     }
 }
