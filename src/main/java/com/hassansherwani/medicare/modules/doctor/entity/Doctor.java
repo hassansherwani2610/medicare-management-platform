@@ -1,5 +1,6 @@
 package com.hassansherwani.medicare.modules.doctor.entity;
 
+import com.hassansherwani.medicare.common.audit.Auditable;
 import com.hassansherwani.medicare.modules.auth.entity.User;
 import com.hassansherwani.medicare.modules.doctor.enums.Specialization;
 import jakarta.persistence.*;
@@ -14,7 +15,7 @@ import java.math.BigDecimal;
 @AllArgsConstructor
 @NoArgsConstructor
 @Table(name = "doctors")
-public class Doctor {
+public class Doctor extends Auditable {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
